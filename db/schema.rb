@@ -10,11 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171221234035) do
+ActiveRecord::Schema.define(version: 20171222061124) do
 
   create_table "coins", force: :cascade do |t|
+    t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "minutes", force: :cascade do |t|
+    t.datetime "time"
+    t.float "open"
+    t.float "high"
+    t.float "low"
+    t.float "close"
+    t.float "vol_btc"
+    t.float "vol_currency"
+    t.float "weighted"
   end
 
 end

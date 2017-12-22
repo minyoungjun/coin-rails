@@ -1,0 +1,17 @@
+
+<div id="chart"></div>
+<script>
+var chart = bb.generate({
+  "data": <%=@json.html_safe()%>,
+  "axis": {
+    "x": {
+      "type": "timeseries",
+      "localtime": false,
+      "tick": {
+        "format": "%Y-%m-%d %H:%M:%S"
+      }
+    }
+  },
+  "bindto": "#chart"
+  });
+</script>
