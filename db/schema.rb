@@ -10,23 +10,50 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171222061124) do
+ActiveRecord::Schema.define(version: 20171224193341) do
 
-  create_table "coins", force: :cascade do |t|
+  create_table "candledata", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.integer "candlesize_id"
+    t.datetime "start_time"
+    t.datetime "end_time"
+    t.float "open", limit: 24
+    t.float "high", limit: 24
+    t.float "low", limit: 24
+    t.float "close", limit: 24
+    t.float "vol_btc", limit: 24
+    t.float "vol_currency", limit: 24
+    t.float "weighted", limit: 24
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["candlesize_id"], name: "index_candledata_on_candlesize_id"
+    t.index ["end_time"], name: "index_candledata_on_end_time"
+    t.index ["start_time"], name: "index_candledata_on_start_time"
+  end
+
+  create_table "candlesizes", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.integer "minute"
+    t.datetime "start_time"
+    t.datetime "end_time"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "coins", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "minutes", force: :cascade do |t|
+  create_table "minutes", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.datetime "time"
-    t.float "open"
-    t.float "high"
-    t.float "low"
-    t.float "close"
-    t.float "vol_btc"
-    t.float "vol_currency"
-    t.float "weighted"
+    t.float "open", limit: 24
+    t.float "high", limit: 24
+    t.float "low", limit: 24
+    t.float "close", limit: 24
+    t.float "vol_btc", limit: 24
+    t.float "vol_currency", limit: 24
+    t.float "weighted", limit: 24
+    t.index ["time"], name: "index_minutes_on_time", unique: true
   end
 
 end
