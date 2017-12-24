@@ -1,0 +1,96 @@
+<div id="chartContainer" style="height: 370px; max-width: 920px; margin: 0px auto;"></div>
+
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script>
+
+window.onload = function () {
+
+
+  $.get("/candles/api?db=<%=@db%>", getDataPointsFromJSON);
+
+function getDataPointsFromJSON(result){
+
+  var dataPoints = result;
+  console.log(dataPoints);
+  for (var i = 0; i < dataPoints.length; i++){
+    dataPoints[i]['x'] = new Date(dataPoints[i]['x'])
+  }
+
+  var chart = new CanvasJS.Chart("chartContainer", {
+    animationEnabled: true,
+    zoomEnabled: true,
+    title:{
+      text: "가상화폐 거래 데이터 시각화"
+    },
+    subtitles: [{
+      text: "다양한 데이터베이스를 이용"
+    }],
+    axisX: {
+      valueFormatString: "HH:m"
+    },
+    axisY: {
+      includeZero:false, 
+      prefix: "$",
+      title: "Price"
+    },
+    axisY2: {
+      prefix: "$",
+      suffix: "bn",
+      title: "Revenue & Income",
+      tickLength: 0
+    },
+    toolTip: {
+      shared: true
+    },
+    legend: {
+      reversed: true,
+      cursor: "pointer",
+      itemclick: toggleDataSeries
+    },
+    data: [{
+      type: "candlestick",
+      risingColor: "#F79B8E",
+      showInLegend: true,
+      name: "BTC/USD",
+      yValueFormatString: "$#,##0.00",
+      xValueFormatString: "MMMM",
+      dataPoints: dataPoints
+    }
+    /*
+    {
+      type: "spline",
+      showInLegend: true,
+      name: "이동평균선",
+      yValueFormatString: "$#,##0.00bn",
+      xValueFormatString: "MMMM",
+      lineColor: "#FB8C00",
+      markerSize: 0,
+      dataPoints: [
+        { x: new Date(2016, 2), y: 100.510 },
+        { x: new Date(2016, 5), y: 120.055 },
+        { x: new Date(2016, 8), y: 150.379 },
+        { x: new Date(2016, 11), y: 130.568 }
+      ]
+      }
+      */
+      ]
+  });
+
+  chart.render();
+
+}
+
+function toggleDataSeries(e) {
+  if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+    e.dataSeries.visible = false;
+  } else {
+    e.dataSeries.visible = true;
+  }
+  e.chart.render();
+}
+
+}
+</script>
+
+

@@ -3,4 +3,7 @@ Rails.application.routes.draw do
   root "charts#index"
   get "charts/api"
   get "charts/mysql"
+  get "charts/mongo"
+  get "candles/chart/:db" => "candles#index"
+  get "candles/api"
 end
