@@ -8,9 +8,111 @@
 
 require 'cassandra'
 
-START_TIME = "2017-09-01 00:00:00"
+START_TIME = "2015-10-01 00:00:00"
 END_TIME = "2017-10-01 00:00:00"
+TERM = 1440
+SIZE = 10
+#이동평균선 1년기준 10일 이동평균
+=begin
+#MYSQL
+candlesize = Candlesize.find(12)
+candledata = candlesize.candledata
+#1일씩 들어있음. 5일 종가 평균을 내보자
 
+size = SIZE
+
+temp = []
+
+start_time = Time.now
+candledata.each do |candledatum|
+
+  if temp.size > size - 1
+    temp.shift
+  end
+
+  temp << candledatum
+
+  sum = 0
+
+  temp.each do |temp|
+    sum = sum + temp.close
+  end
+
+  average = sum/size
+
+  moving = Moving.new
+  moving.candlesize_id = candlesize.id
+  moving.start_time = candledatum.start_time
+  moving.size = size
+  moving.candledatum_id = candledatum.id
+  moving.average = average
+  moving.save
+
+
+end
+
+puts Time.now - start_time
+=end
+=begin
+#cassandra 이동평균
+start_time = Time.now
+cluster = Cassandra.cluster
+keyspace = 'py_casandra'
+session = cluster.connect(keyspace)
+size = SIZE
+
+temp = []
+session.execute("CREATE TABLE IF NOT EXISTS py_casandra.movings ( start_time timestamp, close float, size int, PRIMARY KEY(size, start_time) ) WITH CLUSTERING ORDER BY (start_time ASC);")
+
+future = session.execute_async("SELECT start_time, close FROM candledata where term = 1440 ORDER BY start_time ASC", :page_size => 100000)
+
+future.join.each do |candledatum|
+  if temp.size > size - 1
+    temp.shift
+  end
+  temp << candledatum
+  sum = 0
+  temp.each do |temp|
+    sum  = sum + temp['close']
+  end
+
+  average = sum/size
+
+  session.execute("INSERT INTO py_casandra.movings (start_time, close, size) VALUES ('#{candledatum['start_time']}',#{average}, #{size} );")
+
+end
+
+puts Time.now - start_time
+=end
+#mongodb 이동평균
+start_time  = Time.now
+
+client = Mongo::Client.new(['127.0.0.1:27017'], :database => 'mydb')
+candledata = client[:candledata]
+movingcollection = client[:movings] #collection으로 구분하자.
+size = SIZE
+temp = []
+candledata.find({"term" => TERM*3}, :sort => {'start_time' => 1}).each do |candledatum|
+  if temp.size > size - 1
+    temp.shift
+  end
+
+  temp << candledatum
+  sum = 0
+  temp.each do |temp|
+    sum = sum + temp['close']
+  end
+
+  average = sum/size
+
+  movingcollection.insert_one({:start_time => candledatum['start_time'], :average => average, :size => size })
+
+end
+
+puts Time.now - start_time
+
+
+=begin
 #cassandra
 start = Time.now
 cluster = Cassandra.cluster
@@ -19,9 +121,9 @@ cluster.each_host do |host|
 end
 keyspace = 'py_casandra'
 session = cluster.connect(keyspace)
-#session.execute("CREATE TABLE IF NOT EXISTS py_casandra.candledata ( start_time timestamp, open float, high float, close float, low float, vol_btc float, vol_currency float, term int, PRIMARY_KEY(term, start_time) ) WITH CLUSTERING ORDER BY (start_time DESC);")
+#session.execute("CREATE TABLE IF NOT EXISTS py_casandra.candledata ( start_time timestamp, open float, high float, close float, low float, vol_btc float, vol_currency float, term int, PRIMARY_KEY(term, start_time) ) WITH CLUSTERING ORDER BY (start_time ASC);")
 
-term = 1440
+term = TERM
 
 current_time = DateTime.parse(START_TIME)
 
@@ -51,16 +153,16 @@ while(current_time < DateTime.parse(END_TIME))
 end
 
 puts (Time.now - start)
-
-
-=begin
+=end
 #mongo
+=begin
+start = Time.now
 
 client = Mongo::Client.new(['127.0.0.1:27017'], :database => 'mydb')
 things = client[:things]
 collection = client[:candledata] #collection으로 구분하자.
 
-term = 60
+term = TERM
 
 current_time = DateTime.parse(START_TIME)
 while (current_time < DateTime.parse(END_TIME))
@@ -91,23 +193,20 @@ while (current_time < DateTime.parse(END_TIME))
     end
   end
 
-  collection.insert_one({ :start_time => current_time.to_i*1000, :end_time => last_time.to_i*1000, :high => high, :low => low, :open => first['open'], :close => last['close'] })
+  collection.insert_one({ :start_time => current_time.to_i*1000, :end_time => last_time.to_i*1000, :high => high, :low => low, :open => first['open'], :close => last['close'], :term => term*3 })
   current_time = current_time + term.minute
 
 end
 
+puts (Time.now - start)
 =end
-
-
-=begin
-
 #MYSQL
 #
-
+=begin
 candlesize = Candlesize.new
 candlesize.start_time = START_TIME
 candlesize.end_time = END_TIME
-candlesize.minute = 60
+candlesize.minute = TERM
 candlesize.save
 
 current_time = candlesize.start_time

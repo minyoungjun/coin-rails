@@ -2,8 +2,8 @@ class ChartsController < ApplicationController
   require 'cassandra'
   require 'json'
 
-  START_TIME = '2016-01-01 00:00:00'
-  END_TIME = '2017-01-01 00:00:00'
+  START_TIME = '2017-09-01 00:00:00'
+  END_TIME = '2017-09-02 00:00:00'
 
   def mongo
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171224193341) do
+ActiveRecord::Schema.define(version: 20171225214327) do
 
   create_table "candledata", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.integer "candlesize_id"
@@ -54,6 +54,19 @@ ActiveRecord::Schema.define(version: 20171224193341) do
     t.float "vol_currency", limit: 24
     t.float "weighted", limit: 24
     t.index ["time"], name: "index_minutes_on_time", unique: true
+  end
+
+  create_table "movings", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.integer "candlesize_id"
+    t.integer "candledatum_id"
+    t.integer "size"
+    t.datetime "start_time"
+    t.float "average", limit: 24
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["candlesize_id"], name: "index_movings_on_candlesize_id"
+    t.index ["size"], name: "index_movings_on_size"
+    t.index ["start_time"], name: "index_movings_on_start_time"
   end
 
 end

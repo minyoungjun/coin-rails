@@ -11,10 +11,14 @@ window.onload = function () {
 
 function getDataPointsFromJSON(result){
 
-  var dataPoints = result;
-  console.log(dataPoints);
+  var dataPoints = result[0];
+  var average = result[1];
+  //console.log(dataPoints);
   for (var i = 0; i < dataPoints.length; i++){
     dataPoints[i]['x'] = new Date(dataPoints[i]['x'])
+  }
+  for (var i = 0; i < average.length; i++){
+    average[i]['x'] = new Date(average[i]['x'])
   }
 
   var chart = new CanvasJS.Chart("chartContainer", {
@@ -55,24 +59,22 @@ function getDataPointsFromJSON(result){
       name: "BTC/USD",
       yValueFormatString: "$#,##0.00",
       dataPoints: dataPoints
-    }
-    /*
+    },
     {
       type: "spline",
       showInLegend: true,
-      name: "이동평균선",
-      yValueFormatString: "$#,##0.00bn",
-      xValueFormatString: "MMMM",
+      name: "10일 이동평균선",
+      yValueFormatString: "$#,##0.00",
       lineColor: "#FB8C00",
       markerSize: 0,
-      dataPoints: [
+      dataPoints: average
+        /*[
         { x: new Date(2016, 2), y: 100.510 },
         { x: new Date(2016, 5), y: 120.055 },
         { x: new Date(2016, 8), y: 150.379 },
         { x: new Date(2016, 11), y: 130.568 }
-      ]
+      ]*/
       }
-      */
       ]
   });
 
