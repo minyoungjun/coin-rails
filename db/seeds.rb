@@ -12,8 +12,9 @@ START_TIME = "2015-10-01 00:00:00"
 END_TIME = "2017-10-01 00:00:00"
 TERM = 1440
 SIZE = 10
-#이동평균선 1년기준 10일 이동평균
-=begin
+
+#이동평균선 1년기준 10일 이동평균 구하기
+#
 #MYSQL
 candlesize = Candlesize.find(12)
 candledata = candlesize.candledata
@@ -52,9 +53,9 @@ candledata.each do |candledatum|
 end
 
 puts Time.now - start_time
-=end
-=begin
-#cassandra 이동평균
+
+
+#cassandra 이동평균 구하기
 start_time = Time.now
 cluster = Cassandra.cluster
 keyspace = 'py_casandra'
@@ -83,7 +84,8 @@ future.join.each do |candledatum|
 end
 
 puts Time.now - start_time
-=end
+
+
 #mongodb 이동평균
 start_time  = Time.now
 
@@ -111,8 +113,6 @@ end
 
 puts Time.now - start_time
 
-
-=begin
 #cassandra
 start = Time.now
 cluster = Cassandra.cluster
@@ -129,7 +129,7 @@ current_time = DateTime.parse(START_TIME)
 
 while(current_time < DateTime.parse(END_TIME))
   last_time = current_time + term.minute - 1.minute
-  future = session.execute_async("SELECT time, open, high, close, low FROM coins where id=c3113762-4a4c-4be9-8c4f-9f3f98ebe428 AND time >= '#{current_time.to_s}' AND time <= '#{last_time.to_s}' ORDER BY time ASC", :page_size => 100000)
+  future = session.execute_async("SELECT time, open, high, close, low FROM coins where id=c3113762-4a4c-4be9-8c4f-9f3f98ebe428 AND time >= '#{current_time.to_s}' AND time <= '#{last_time.to_s}' ORDER BY time ASC", :page_size => 10000000)
   range = future.join
 
   high = 0
@@ -147,15 +147,14 @@ while(current_time < DateTime.parse(END_TIME))
 
   first = range.first
 
-  session.execute("INSERT INTO py_casandra.candledata (start_time, open, high, low, close, term) VALUES ('#{current_time.to_s}', #{first['open']},#{high}, #{low}, #{last['close']}, #{term} );")
+  session.execute("INSERT INTO py_casandra.candledata (start_time, open, high, low, close, term) VALUES ('#{current_time.to_s}', #{first['open']},#{high}, #{low}, #{last['close']}, #{term*3} );")
   current_time = current_time + term.minute
 
 end
 
 puts (Time.now - start)
-=end
+
 #mongo
-=begin
 start = Time.now
 
 client = Mongo::Client.new(['127.0.0.1:27017'], :database => 'mydb')
@@ -199,10 +198,10 @@ while (current_time < DateTime.parse(END_TIME))
 end
 
 puts (Time.now - start)
-=end
+
+
 #MYSQL
 #
-=begin
 candlesize = Candlesize.new
 candlesize.start_time = START_TIME
 candlesize.end_time = END_TIME
@@ -245,5 +244,5 @@ while(current_time < candlesize.end_time)
 end
 
 puts "TIME: " + (Time.now - start_time).to_s
+
 #MYSQL END
-=end
